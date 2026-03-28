@@ -9,39 +9,87 @@
             --bg-color: #0a0a0a;
             --flap-bg: #262626;
             --text-color: #e0e0e0;
-            --flap-width: 32px;
-            --flap-height: 50px;
-            --font-size: 28px;
             --panel-bg: #111;
             --orange-status: #ff9900;
             --green-status: #22ff22;
+
+            /* Scaling Variables */
+            --flap-width: 1.2vw;
+            --flap-height: 1.9vw;
+            --font-size: 1.3vw;
+            --flap-gap: 0.15vw;
+            --group-gap: 1.2vw;
+            --sep-width: 1vw;
+        }
+
+        /* Portrait Warning Overlay */
+        .portrait-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--orange-status);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .portrait-warning h2 {
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .portrait-warning svg {
+            width: 60px;
+            height: 60px;
+            fill: var(--orange-status);
+            margin-bottom: 20px;
+            animation: rotate-phone 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes rotate-phone {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(90deg); }
+        }
+
+        /* Enforce Portrait Warning on Mobile Portrait Orientation */
+        @media screen and (orientation: portrait) {
+            .portrait-warning {
+                display: flex;
+            }
+            body {
+                overflow: hidden; 
+            }
+            .board-container, .system-clock-container, h1, .controls {
+                display: none !important;
+            }
         }
 
         /* Mobile Adjustments */
         @media (max-width: 768px) {
-            :root {
-                --flap-width: 16px;
-                --flap-height: 28px;
-                --font-size: 14px;
-            }
-            body { padding: 10px; }
-            h1 { font-size: 1.2rem; letter-spacing: 4px; }
+            body { padding: 5px; }
+            h1 { font-size: 3vw; letter-spacing: 1vw; }
             
             .board-container {
-                border-width: 4px;
-                padding: 10px;
+                border-width: 2px;
+                padding: 0.5vw; /* Reduced by 2/3 from original 1.5vw */
+                overflow: hidden;
             }
             
             .board { 
-                min-width: 800px; /* Keeps the flaps aligned in a row */
+                min-width: auto; 
             }
             
             .controls { 
-                flex-direction: column; 
-                width: 100%; 
-                align-items: stretch; 
-                box-sizing: border-box;
-                display: none; /* Auto-running now, hiding controls */
+                display: none; 
             }
         }
 
@@ -52,79 +100,89 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px;
+            padding: 1vw;
             margin: 0;
             min-height: 100vh;
+            overflow-x: hidden; 
         }
 
-        h1 { letter-spacing: 8px; text-transform: uppercase; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,204,0,0.3); text-align: center; }
+        h1 { 
+            font-size: 2vw; 
+            letter-spacing: 0.5vw; 
+            text-transform: uppercase; 
+            margin-bottom: 1vw; 
+            text-shadow: 0 0 10px rgba(255,204,0,0.3); 
+            text-align: center; 
+        }
 
         .system-clock-container {
             display: flex;
-            gap: 3px;
+            gap: var(--flap-gap);
             align-items: center;
             background: #1a1a1a;
-            padding: 15px 25px;
+            padding: 0.8vw 1.5vw;
             border: 4px solid #333;
             border-radius: 8px;
-            margin-bottom: 25px;
+            margin-bottom: 1.5vw;
             box-shadow: inset 0 0 15px #000;
         }
 
         .controls { 
-            margin-bottom: 30px; 
-            background: #222; 
-            padding: 15px; 
-            border-radius: 8px;
-            display: flex; 
-            flex-wrap: wrap;
-            gap: 10px; 
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-width: 100%;
-            visibility: hidden; /* Removing user interaction as requested */
-            height: 0;
-            padding: 0;
-            margin: 0;
+            display: none;
         }
 
         /* The Frame of the Board */
         .board-container {
-            max-width: 100%;
+            width: max-content;
+            max-width: 98vw;
             background: var(--panel-bg);
-            padding: 30px;
-            border: 8px solid #333;
+            padding: 0.5vw; /* Reduced by 2/3 from original 1.5vw */
+            border: max(4px, 0.4vw) solid #333;
             border-radius: 4px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-            overflow-x: auto; /* Handles the horizontal scroll */
+            box-shadow: 0 2vw 6vw rgba(0,0,0,0.9);
             box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            overflow: hidden; 
         }
 
         .board {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            width: max-content; /* Ensures it expands to show all flaps */
+            gap: 0.6vw;
+            width: max-content; 
         }
 
         .header-row {
             display: flex;
-            gap: 20px;
+            gap: var(--group-gap);
             color: #555;
-            font-size: 12px;
+            font-size: max(8px, 0.8vw);
             font-weight: bold;
-            padding-bottom: 5px;
+            padding-bottom: 0.5vw;
             border-bottom: 1px solid #222;
         }
 
-        .row { display: flex; gap: 20px; align-items: center; }
-        .group { display: flex; gap: 3px; align-items: center; }
+        .hdr-flight { width: calc((var(--flap-width) * 6) + (var(--flap-gap) * 5)); }
+        .hdr-time { width: calc((var(--flap-width) * 4) + (var(--flap-gap) * 4) + var(--sep-width)); }
+        .hdr-to { width: calc((var(--flap-width) * 14) + (var(--flap-gap) * 13)); }
+        .hdr-airport { width: calc((var(--flap-width) * 14) + (var(--flap-gap) * 13)); }
+        .hdr-chk { width: calc((var(--flap-width) * 4) + (var(--flap-gap) * 4) + var(--sep-width)); }
+        .hdr-remarks { width: calc((var(--flap-width) * 10) + (var(--flap-gap) * 9)); }
+        .hdr-boarding { width: calc((var(--flap-width) * 3) + (var(--flap-gap) * 2)); }
+
+        .row { display: flex; gap: var(--group-gap); align-items: center; }
+        .group { display: flex; gap: var(--flap-gap); align-items: center; }
 
         .separator {
             font-size: var(--font-size);
             color: var(--text-color);
             font-weight: bold;
-            padding: 0 2px;
+            padding: 0;
+            width: var(--sep-width);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .group-remarks .flap { color: var(--orange-status); }
@@ -186,6 +244,14 @@
 </head>
 <body>
 
+    <div class="portrait-warning">
+        <svg viewBox="0 0 24 24">
+            <path d="M16.48 2.52c3.27 1.55 5.61 4.72 5.97 8.48h1.5C23.44 4.84 18.29 0 12 0l-.66.03 3.81 3.81 1.33-1.32zm-6.25-.77c-.59-.59-1.54-.59-2.12 0L1.75 8.11c-.59.59-.59 1.54 0 2.12l12.02 12.02c.59.59 1.54.59 2.12 0l6.36-6.36c.59-.59.59-1.54 0-2.12L10.23 1.75zm4.6 19.44L2.81 9.17l6.36-6.36 12.02 12.02-6.36 6.36zm-7.31.29C4.25 19.94 1.91 16.76 1.55 13H.05C.56 19.16 5.71 24 12 24l.66-.03-3.81-3.81-1.33 1.32z"/>
+        </svg>
+        <h2>Rotate Device</h2>
+        <p>Please rotate your phone to landscape mode to view the departures board.</p>
+    </div>
+
     <h1>Departures</h1>
     <div class="system-clock-container" id="clockBoard"></div>
 
@@ -199,25 +265,20 @@
     <div class="board-container">
         <div class="board" id="mainBoard">
             <div class="header-row">
-                <div style="width: 210px;">FLIGHT</div>
-                <div style="width: 137px;">TIME</div>
-                <div style="width: 485px;">TO</div>
-                <div style="width: 485px;">AIRPORT</div>
-                <div style="width: 137px;">CHK</div>
-                <div style="width: 345px;">REMARKS</div>
-                <div style="width: 105px;">BOARDING</div>
+                <div class="hdr-flight">FLIGHT</div>
+                <div class="hdr-time">TIME</div>
+                <div class="hdr-to">TO</div>
+                <div class="hdr-airport">AIRPORT</div>
+                <div class="hdr-chk">CHK</div>
+                <div class="hdr-remarks">REMARKS</div>
+                <div class="hdr-boarding">BOARDING</div>
             </div>
         </div>
     </div>
 
-    <audio id="ambientAudio" loop>
-        <source src="https://www.epidemicsound.com/sound-effects/tracks/50f6780d-6e1a-40da-8fa9-54087a6bf1c9/" type="audio/,peg">
-    </audio>
-
     <script>
         const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:-!/@$%&*()?".split("");
         const CLOCK_CHARS = "0123456789 ".split("");
-        const PASTELS = ["#FFB7B2", "#FFDAC1", "#E2F0CB", "#B5EAD7", "#C7CEEA", "#F3D1F4"];
 
         const AIRPORTS = [
             { city: "LONDON", code: "LHR" }, { city: "NEW YORK", code: "JFK" },
@@ -247,18 +308,6 @@
 
         let boardState = [];
         let clockState = [" ", " ", " ", " ", " ", " "];
-
-        // Audio initialization on first click
-        function initAudio() {
-            const audio = document.getElementById('ambientAudio');
-            audio.play().catch(e => console.log("Audio play blocked by browser."));
-            // Remove listener after first interaction
-            document.removeEventListener('click', initAudio);
-            document.removeEventListener('touchstart', initAudio);
-        }
-
-        document.addEventListener('click', initAudio);
-        document.addEventListener('touchstart', initAudio);
 
         function updateClock() {
             const now = new Date();
