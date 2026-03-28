@@ -2,140 +2,407 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Split-Flap Display</title>
+    <title>International Departures Board</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --flap-bg: #333;
-            --text-color: #ddd;
-            --flap-width: 60px;
-            --flap-height: 80px;
-            --font-size: 50px;
+            --bg-color: #0a0a0a;
+            --flap-bg: #262626;
+            --text-color: #e0e0e0;
+            --flap-width: 32px;
+            --flap-height: 50px;
+            --font-size: 28px;
+            --panel-bg: #111;
+            --orange-status: #ff9900;
+            --green-status: #22ff22;
         }
 
         body {
             background-color: var(--bg-color);
-            color: white;
+            color: #ffcc00; 
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            padding: 40px 20px;
             margin: 0;
+            min-height: 100vh;
         }
 
-        .controls { margin-bottom: 40px; }
-        input { 
-            padding: 10px; 
-            font-size: 18px; 
-            text-transform: uppercase; 
-            background: #444; 
-            border: 1px solid #555; 
-            color: white;
-        }
+        h1 { letter-spacing: 8px; text-transform: uppercase; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,204,0,0.3); }
 
-        .display {
+        /* Updated Clock Styling to match Flaps */
+        .system-clock-container {
             display: flex;
-            gap: 10px;
-            perspective: 1000px;
+            gap: 3px;
+            align-items: center;
+            background: #1a1a1a;
+            padding: 15px 25px;
+            border: 4px solid #333;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 0 15px #000;
+        }
+
+        .controls { 
+            margin-bottom: 30px; 
+            background: #222; 
+            padding: 15px; 
+            border-radius: 8px;
+            display: flex; 
+            flex-wrap: wrap;
+            gap: 10px; 
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        input { 
+            padding: 8px; 
+            font-size: 14px; 
+            text-transform: uppercase; 
+            background: #333; 
+            border: 1px solid #444; 
+            color: white;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+            background: #f0ad4e;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .board {
+            background: var(--panel-bg);
+            padding: 30px;
+            border: 8px solid #333;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        }
+
+        .header-row {
+            display: flex;
+            gap: 20px;
+            color: #555;
+            font-size: 12px;
+            font-weight: bold;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #222;
+        }
+
+        .row { display: flex; gap: 20px; align-items: center; }
+        .group { display: flex; gap: 3px; align-items: center; }
+
+        .separator {
+            font-size: var(--font-size);
+            color: var(--text-color);
+            font-weight: bold;
+            padding: 0 2px;
+        }
+
+        /* Status Colors */
+        .group-remarks .flap { color: var(--orange-status); }
+        .group-boarding .flap { color: var(--green-status); }
+
+        .flap-container {
+            perspective: 300px;
+            width: var(--flap-width);
+            height: var(--flap-height);
         }
 
         .flap {
             position: relative;
-            width: var(--flap-width);
-            height: var(--flap-height);
+            width: 100%;
+            height: 100%;
             background-color: var(--flap-bg);
-            border-radius: 6px;
+            border-radius: 3px;
             line-height: var(--flap-height);
             text-align: center;
             font-size: var(--font-size);
             font-weight: bold;
             color: var(--text-color);
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transform-style: preserve-3d;
         }
 
-        /* The horizontal hinge line */
         .flap::after {
             content: '';
             position: absolute;
             top: 50%;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: rgba(0,0,0,0.6);
+            height: 1px;
+            background: rgba(0,0,0,0.8);
             z-index: 5;
+            transform: translateZ(1px);
         }
 
-        /* Animation class */
-        .flipping {
-            animation: flip-anim 0.15s ease-in;
+        .flap-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            transform: rotateX(180deg);
+            border-radius: 3px;
+            z-index: -1;
         }
 
-        @keyframes flip-anim {
+        .flipping { animation: flip-3d 0.08s ease-in; }
+
+        @keyframes flip-3d {
             0% { transform: rotateX(0deg); }
-            50% { transform: rotateX(-90deg); background-color: #444; }
-            100% { transform: rotateX(0deg); }
+            50% { transform: rotateX(-90deg); }
+            100% { transform: rotateX(-180deg); }
         }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <input type="text" id="userInput" placeholder="ENTER DESTINATION..." maxlength="10">
-        <button onclick="updateDisplay()">SET</button>
-    </div>
-
-    <div class="display" id="board">
+    <h1>Departures</h1>
+    <div class="system-clock-container" id="clockBoard">
         </div>
 
-    <script>
-        const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
-        const BOARD_SIZE = 10;
-        const boardElement = document.getElementById('board');
-        let currentValues = Array(BOARD_SIZE).fill(" ");
+    <div class="controls">
+        <input type="text" id="timeIn" placeholder="TIME (HHMM)" maxlength="4" style="width: 80px;">
+        <input type="text" id="toIn" placeholder="TO" maxlength="14" style="width: 130px;">
+        <input type="text" id="airIn" placeholder="AIRPORT" maxlength="14" style="width: 130px;">
+        <input type="text" id="checkIn" placeholder="CHK" maxlength="4" style="width: 60px;">
+        <button onclick="updateTopRow()">ADD FLIGHT</button>
+    </div>
 
-        // Initialize the board
-        function initBoard() {
-            boardElement.innerHTML = '';
-            for (let i = 0; i < BOARD_SIZE; i++) {
+    <div class="board" id="mainBoard">
+        <div class="header-row">
+            <div style="width: 210px;">FLIGHT</div>
+            <div style="width: 137px;">TIME</div>
+            <div style="width: 485px;">TO</div>
+            <div style="width: 485px;">AIRPORT</div>
+            <div style="width: 137px;">CHK</div>
+            <div style="width: 345px;">REMARKS</div>
+            <div style="width: 105px;">BOARDING</div>
+        </div>
+    </div>
+
+    <script>
+        const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:-!/@$%&*()?".split("");
+        const CLOCK_CHARS = "0123456789 ".split("");
+        const PASTELS = ["#FFB7B2", "#FFDAC1", "#E2F0CB", "#B5EAD7", "#C7CEEA", "#F3D1F4"];
+        
+        const ROWS_COUNT = 8;
+        const COL_CONFIG = [
+            { id: 'flight', size: 6 },
+            { id: 'time', size: 4, separatorAt: 2 },
+            { id: 'to', size: 14 },
+            { id: 'airport', size: 14 },
+            { id: 'checkin', size: 4, separatorAt: 2 },
+            { id: 'remarks', size: 10 },
+            { id: 'boarding', size: 3 }
+        ];
+
+        let boardState = [];
+        let clockState = [" ", " ", " ", " ", " ", " "]; // HHMMSS
+
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            const timeString = h + m + s;
+            const targetChars = timeString.split("");
+
+            targetChars.forEach((char, i) => {
+                const el = document.getElementById(`clock-flap-${i}`);
+                if (el && clockState[i] !== char) {
+                    const startChar = clockState[i];
+                    animateClockFlap(el, startChar, char, i);
+                }
+            });
+        }
+
+        function initClock() {
+            const clockBoard = document.getElementById('clockBoard');
+            for (let i = 0; i < 6; i++) {
+                if (i > 0 && i % 2 === 0) {
+                    const sep = document.createElement('div');
+                    sep.className = 'separator';
+                    sep.innerText = ':';
+                    clockBoard.appendChild(sep);
+                }
+                const container = document.createElement('div');
+                container.className = 'flap-container';
                 const flap = document.createElement('div');
                 flap.className = 'flap';
+                flap.id = `clock-flap-${i}`;
                 flap.innerText = " ";
-                boardElement.appendChild(flap);
+                
+                const back = document.createElement('div');
+                back.className = 'flap-back';
+                // Removed random background color for clock flaps
+                
+                flap.appendChild(back);
+                container.appendChild(flap);
+                clockBoard.appendChild(container);
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+        }
+
+        async function animateClockFlap(element, startChar, endChar, idx) {
+            let currentIndex = CLOCK_CHARS.indexOf(startChar);
+            let targetIndex = CLOCK_CHARS.indexOf(endChar);
+            if (targetIndex === -1) targetIndex = 0;
+
+            while (currentIndex !== targetIndex) {
+                currentIndex = (currentIndex + 1) % CLOCK_CHARS.length;
+                element.classList.remove('flipping');
+                void element.offsetWidth; 
+                element.classList.add('flipping');
+
+                await new Promise(r => setTimeout(r, 20));
+                element.childNodes[0].nodeValue = CLOCK_CHARS[currentIndex];
+                await new Promise(r => setTimeout(r, 20)); 
+            }
+            clockState[idx] = endChar;
+        }
+
+        function getFlightStatus(flightTimeStr) {
+            if (!flightTimeStr || flightTimeStr.length !== 4) return { remark: "CONFIRMED", boarding: "   " };
+            
+            const now = new Date();
+            const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            const fH = parseInt(flightTimeStr.substring(0, 2));
+            const fM = parseInt(flightTimeStr.substring(2, 4));
+            const flightTotalMinutes = fH * 60 + fM;
+
+            const diff = flightTotalMinutes - currentTotalMinutes;
+
+            if (diff < -15) {
+                return { remark: "DEPARTED", boarding: "   " };
+            } else if (diff <= 0 && diff >= -15) {
+                return { remark: "BOARDING", boarding: "NOW" };
+            } else if (diff > 0 && diff <= 30) {
+                return { remark: "BOARDING", boarding: "   " };
+            } else if (diff > 180) {
+                return { remark: "DELAYED", boarding: "   " };
+            } else {
+                return { remark: "CONFIRMED", boarding: "   " };
             }
         }
 
-        async function updateDisplay() {
-            const input = document.getElementById('userInput').value.toUpperCase();
-            const targetChars = input.padEnd(BOARD_SIZE, " ").split("");
-            const flaps = document.querySelectorAll('.flap');
+        function initBoard() {
+            const boardElem = document.getElementById('mainBoard');
+            for (let r = 0; r < ROWS_COUNT; r++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                let rowObj = {};
 
-            for (let i = 0; i < BOARD_SIZE; i++) {
-                flipTo(flaps[i], currentValues[i], targetChars[i], i);
+                COL_CONFIG.forEach(col => {
+                    const group = document.createElement('div');
+                    group.className = `group group-${col.id}`;
+                    for (let i = 0; i < col.size; i++) {
+                        if (col.separatorAt === i) {
+                            const sep = document.createElement('div');
+                            sep.className = 'separator';
+                            sep.innerText = ':';
+                            group.appendChild(sep);
+                        }
+
+                        const container = document.createElement('div');
+                        container.className = 'flap-container';
+                        const flap = document.createElement('div');
+                        flap.className = 'flap';
+                        flap.id = `r${r}-${col.id}-${i}`;
+                        flap.innerText = " ";
+                        
+                        const back = document.createElement('div');
+                        back.className = 'flap-back';
+                        back.style.backgroundColor = PASTELS[Math.floor(Math.random() * PASTELS.length)];
+                        
+                        flap.appendChild(back);
+                        container.appendChild(flap);
+                        group.appendChild(container);
+                    }
+                    rowDiv.appendChild(group);
+                    rowObj[col.id] = Array(col.size).fill(" ");
+                });
+
+                boardElem.appendChild(rowDiv);
+                boardState.push(rowObj);
             }
         }
 
-        async function flipTo(element, startChar, endChar, index) {
+        async function updateTopRow() {
+            for (let r = ROWS_COUNT - 1; r > 0; r--) {
+                const prevData = {...boardState[r-1]};
+                applyRowData(r, prevData);
+            }
+
+            const timeValue = (document.getElementById('timeIn').value || "0000").toUpperCase();
+            const destination = (document.getElementById('toIn').value || "UNK").toUpperCase();
+            const flightCode = destination.padEnd(3, "X").substring(0, 3) + Math.floor(100 + Math.random() * 900);
+            
+            const status = getFlightStatus(timeValue);
+
+            const newData = {
+                flight: flightCode,
+                time: timeValue,
+                to: destination,
+                airport: (document.getElementById('airIn').value || "").toUpperCase(),
+                checkin: (document.getElementById('checkIn').value || "").toUpperCase(),
+                remarks: status.remark,
+                boarding: status.boarding
+            };
+            applyRowData(0, newData);
+        }
+
+        function applyRowData(rowIndex, data) {
+            COL_CONFIG.forEach(col => {
+                let text = (data[col.id] || "");
+                if (Array.isArray(text)) {
+                    text = text.join("");
+                }
+                const targetText = text.padEnd(col.size, " ").substring(0, col.size);
+                const targetChars = targetText.split("");
+                
+                targetChars.forEach((char, charIdx) => {
+                    const el = document.getElementById(`r${rowIndex}-${col.id}-${charIdx}`);
+                    if (el) {
+                        const startChar = boardState[rowIndex][col.id][charIdx];
+                        animateFlap(el, startChar, char, rowIndex, col.id, charIdx);
+                    }
+                });
+            });
+        }
+
+        async function animateFlap(element, startChar, endChar, rowIdx, colId, charIdx) {
+            if (startChar === endChar) return;
+
             let currentIndex = CHARS.indexOf(startChar);
-            const targetIndex = CHARS.indexOf(endChar);
+            let targetIndex = CHARS.indexOf(endChar);
+            if (targetIndex === -1) targetIndex = 0;
 
             while (currentIndex !== targetIndex) {
                 currentIndex = (currentIndex + 1) % CHARS.length;
-                element.innerText = CHARS[currentIndex];
-                
-                // Trigger CSS animation
                 element.classList.remove('flipping');
-                void element.offsetWidth; // Trigger reflow
+                void element.offsetWidth; 
                 element.classList.add('flipping');
 
-                // Speed of the "click"
-                await new Promise(resolve => setTimeout(resolve, 80)); 
+                await new Promise(r => setTimeout(r, 30));
+                element.childNodes[0].nodeValue = CHARS[currentIndex];
+                await new Promise(r => setTimeout(r, 30)); 
             }
-            currentValues[index] = endChar;
+            boardState[rowIdx][colId][charIdx] = endChar;
         }
 
+        initClock();
         initBoard();
     </script>
 </body>
