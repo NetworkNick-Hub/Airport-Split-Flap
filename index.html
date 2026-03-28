@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>International Departures Board</title>
     <style>
         :root {
@@ -16,6 +17,34 @@
             --green-status: #22ff22;
         }
 
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            :root {
+                --flap-width: 16px;
+                --flap-height: 28px;
+                --font-size: 14px;
+            }
+            body { padding: 10px; }
+            h1 { font-size: 1.2rem; letter-spacing: 4px; }
+            
+            .board-container {
+                border-width: 4px;
+                padding: 10px;
+            }
+            
+            .board { 
+                min-width: 800px; /* Keeps the flaps aligned in a row */
+            }
+            
+            .controls { 
+                flex-direction: column; 
+                width: 100%; 
+                align-items: stretch; 
+                box-sizing: border-box;
+                display: none; /* Auto-running now, hiding controls */
+            }
+        }
+
         body {
             background-color: var(--bg-color);
             color: #ffcc00; 
@@ -28,9 +57,8 @@
             min-height: 100vh;
         }
 
-        h1 { letter-spacing: 8px; text-transform: uppercase; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,204,0,0.3); }
+        h1 { letter-spacing: 8px; text-transform: uppercase; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,204,0,0.3); text-align: center; }
 
-        /* Updated Clock Styling to match Flaps */
         .system-clock-container {
             display: flex;
             gap: 3px;
@@ -53,38 +81,30 @@
             gap: 10px; 
             justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        
-        input { 
-            padding: 8px; 
-            font-size: 14px; 
-            text-transform: uppercase; 
-            background: #333; 
-            border: 1px solid #444; 
-            color: white;
-            border-radius: 4px;
+            max-width: 100%;
+            visibility: hidden; /* Removing user interaction as requested */
+            height: 0;
+            padding: 0;
+            margin: 0;
         }
 
-        button {
-            padding: 8px 16px;
-            font-size: 14px;
-            background: #f0ad4e;
-            color: #000;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .board {
+        /* The Frame of the Board */
+        .board-container {
+            max-width: 100%;
             background: var(--panel-bg);
             padding: 30px;
             border: 8px solid #333;
             border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            overflow-x: auto; /* Handles the horizontal scroll */
+            box-sizing: border-box;
+        }
+
+        .board {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            width: max-content; /* Ensures it expands to show all flaps */
         }
 
         .header-row {
@@ -107,7 +127,6 @@
             padding: 0 2px;
         }
 
-        /* Status Colors */
         .group-remarks .flap { color: var(--orange-status); }
         .group-boarding .flap { color: var(--green-status); }
 
@@ -153,6 +172,7 @@
             transform: rotateX(180deg);
             border-radius: 3px;
             z-index: -1;
+            background-color: var(--flap-bg);
         }
 
         .flipping { animation: flip-3d 0.08s ease-in; }
@@ -167,34 +187,54 @@
 <body>
 
     <h1>Departures</h1>
-    <div class="system-clock-container" id="clockBoard">
-        </div>
+    <div class="system-clock-container" id="clockBoard"></div>
 
     <div class="controls">
-        <input type="text" id="timeIn" placeholder="TIME (HHMM)" maxlength="4" style="width: 80px;">
-        <input type="text" id="toIn" placeholder="TO" maxlength="14" style="width: 130px;">
-        <input type="text" id="airIn" placeholder="AIRPORT" maxlength="14" style="width: 130px;">
-        <input type="text" id="checkIn" placeholder="CHK" maxlength="4" style="width: 60px;">
-        <button onclick="updateTopRow()">ADD FLIGHT</button>
+        <input type="text" id="timeIn">
+        <input type="text" id="toIn">
+        <input type="text" id="airIn">
+        <input type="text" id="checkIn">
     </div>
 
-    <div class="board" id="mainBoard">
-        <div class="header-row">
-            <div style="width: 210px;">FLIGHT</div>
-            <div style="width: 137px;">TIME</div>
-            <div style="width: 485px;">TO</div>
-            <div style="width: 485px;">AIRPORT</div>
-            <div style="width: 137px;">CHK</div>
-            <div style="width: 345px;">REMARKS</div>
-            <div style="width: 105px;">BOARDING</div>
+    <div class="board-container">
+        <div class="board" id="mainBoard">
+            <div class="header-row">
+                <div style="width: 210px;">FLIGHT</div>
+                <div style="width: 137px;">TIME</div>
+                <div style="width: 485px;">TO</div>
+                <div style="width: 485px;">AIRPORT</div>
+                <div style="width: 137px;">CHK</div>
+                <div style="width: 345px;">REMARKS</div>
+                <div style="width: 105px;">BOARDING</div>
+            </div>
         </div>
     </div>
+
+    <audio id="ambientAudio" loop>
+        <source src="https://upload.wikimedia.org/wikipedia/commons/b/b3/Airport_Atmosphere.ogg" type="audio/ogg">
+        <source src="https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptoken=645480_12891157" type="audio/mpeg">
+    </audio>
 
     <script>
         const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:-!/@$%&*()?".split("");
         const CLOCK_CHARS = "0123456789 ".split("");
         const PASTELS = ["#FFB7B2", "#FFDAC1", "#E2F0CB", "#B5EAD7", "#C7CEEA", "#F3D1F4"];
-        
+
+        const AIRPORTS = [
+            { city: "LONDON", code: "LHR" }, { city: "NEW YORK", code: "JFK" },
+            { city: "TOKYO", code: "NRT" }, { city: "PARIS", code: "CDG" },
+            { city: "DUBAI", code: "DXB" }, { city: "SINGAPORE", code: "SIN" },
+            { city: "HONG KONG", code: "HKG" }, { city: "AMSTERDAM", code: "AMS" },
+            { city: "LOS ANGELES", code: "LAX" }, { city: "FRANKFURT", code: "FRA" },
+            { city: "SYDNEY", code: "SYD" }, { city: "AUCKLAND", code: "AKL" },
+            { city: "MADRID", code: "MAD" }, { city: "ROME", code: "FCO" },
+            { city: "BANGKOK", code: "BKK" }, { city: "SEOUL", code: "ICN" },
+            { city: "MUMBAI", code: "BOM" }, { city: "DELHI", code: "DEL" },
+            { city: "ISTANBUL", code: "IST" }, { city: "ZURICH", code: "ZRH" },
+            { city: "DOHA", code: "DOH" }, { city: "TORONTO", code: "YYZ" },
+            { city: "CHICAGO", code: "ORD" }, { city: "SAO PAULO", code: "GRU" }
+        ];
+
         const ROWS_COUNT = 8;
         const COL_CONFIG = [
             { id: 'flight', size: 6 },
@@ -207,7 +247,19 @@
         ];
 
         let boardState = [];
-        let clockState = [" ", " ", " ", " ", " ", " "]; // HHMMSS
+        let clockState = [" ", " ", " ", " ", " ", " "];
+
+        // Audio initialization on first click
+        function initAudio() {
+            const audio = document.getElementById('ambientAudio');
+            audio.play().catch(e => console.log("Audio play blocked by browser."));
+            // Remove listener after first interaction
+            document.removeEventListener('click', initAudio);
+            document.removeEventListener('touchstart', initAudio);
+        }
+
+        document.addEventListener('click', initAudio);
+        document.addEventListener('touchstart', initAudio);
 
         function updateClock() {
             const now = new Date();
@@ -244,7 +296,6 @@
                 
                 const back = document.createElement('div');
                 back.className = 'flap-back';
-                // Removed random background color for clock flaps
                 
                 flap.appendChild(back);
                 container.appendChild(flap);
@@ -297,6 +348,19 @@
             }
         }
 
+        function calculateCheckIn(flightTimeStr) {
+            if (flightTimeStr.length !== 4) return "0000";
+            let h = parseInt(flightTimeStr.substring(0, 2));
+            let m = parseInt(flightTimeStr.substring(2, 4));
+            
+            let totalMinutes = h * 60 + m - 45;
+            if (totalMinutes < 0) totalMinutes += 1440; 
+            
+            let chkH = Math.floor(totalMinutes / 60);
+            let chkM = totalMinutes % 60;
+            return String(chkH).padStart(2, '0') + String(chkM).padStart(2, '0');
+        }
+
         function initBoard() {
             const boardElem = document.getElementById('mainBoard');
             for (let r = 0; r < ROWS_COUNT; r++) {
@@ -324,7 +388,6 @@
                         
                         const back = document.createElement('div');
                         back.className = 'flap-back';
-                        back.style.backgroundColor = PASTELS[Math.floor(Math.random() * PASTELS.length)];
                         
                         flap.appendChild(back);
                         container.appendChild(flap);
@@ -337,6 +400,8 @@
                 boardElem.appendChild(rowDiv);
                 boardState.push(rowObj);
             }
+            setInterval(updateTopRow, 10000);
+            updateTopRow();
         }
 
         async function updateTopRow() {
@@ -345,18 +410,32 @@
                 applyRowData(r, prevData);
             }
 
-            const timeValue = (document.getElementById('timeIn').value || "0000").toUpperCase();
-            const destination = (document.getElementById('toIn').value || "UNK").toUpperCase();
-            const flightCode = destination.padEnd(3, "X").substring(0, 3) + Math.floor(100 + Math.random() * 900);
+            const depIndex = Math.floor(Math.random() * AIRPORTS.length);
+            const depAir = AIRPORTS[depIndex];
             
+            let destIndex;
+            do {
+                destIndex = Math.floor(Math.random() * AIRPORTS.length);
+            } while (destIndex === depIndex);
+            const destAir = AIRPORTS[destIndex];
+            
+            const rh = String(Math.floor(Math.random() * 24)).padStart(2, '0');
+            const rm = String(Math.floor(Math.random() * 60)).padStart(2, '0');
+            const timeValue = rh + rm;
+
+            const departureCity = depAir.city.toUpperCase();
+            const destinationCity = destAir.city.toUpperCase();
+            const flightCode = depAir.code.toUpperCase() + Math.floor(100 + Math.random() * 899);
+            
+            const chkValue = calculateCheckIn(timeValue);
             const status = getFlightStatus(timeValue);
 
             const newData = {
                 flight: flightCode,
                 time: timeValue,
-                to: destination,
-                airport: (document.getElementById('airIn').value || "").toUpperCase(),
-                checkin: (document.getElementById('checkIn').value || "").toUpperCase(),
+                to: destinationCity,
+                airport: departureCity,
+                checkin: chkValue,
                 remarks: status.remark,
                 boarding: status.boarding
             };
@@ -376,13 +455,14 @@
                     const el = document.getElementById(`r${rowIndex}-${col.id}-${charIdx}`);
                     if (el) {
                         const startChar = boardState[rowIndex][col.id][charIdx];
-                        animateFlap(el, startChar, char, rowIndex, col.id, charIdx);
+                        boardState[rowIndex][col.id][charIdx] = char;
+                        animateFlap(el, startChar, char);
                     }
                 });
             });
         }
 
-        async function animateFlap(element, startChar, endChar, rowIdx, colId, charIdx) {
+        async function animateFlap(element, startChar, endChar) {
             if (startChar === endChar) return;
 
             let currentIndex = CHARS.indexOf(startChar);
@@ -399,7 +479,6 @@
                 element.childNodes[0].nodeValue = CHARS[currentIndex];
                 await new Promise(r => setTimeout(r, 30)); 
             }
-            boardState[rowIdx][colId][charIdx] = endChar;
         }
 
         initClock();
