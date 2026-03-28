@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Split-Flap Display</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --flap-bg: #333;
+            --text-color: #ddd;
+            --flap-width: 60px;
+            --flap-height: 80px;
+            --font-size: 50px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .controls { margin-bottom: 40px; }
+        input { 
+            padding: 10px; 
+            font-size: 18px; 
+            text-transform: uppercase; 
+            background: #444; 
+            border: 1px solid #555; 
+            color: white;
+        }
+
+        .display {
+            display: flex;
+            gap: 10px;
+            perspective: 1000px;
+        }
+
+        .flap {
+            position: relative;
+            width: var(--flap-width);
+            height: var(--flap-height);
+            background-color: var(--flap-bg);
+            border-radius: 6px;
+            line-height: var(--flap-height);
+            text-align: center;
+            font-size: var(--font-size);
+            font-weight: bold;
+            color: var(--text-color);
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        /* The horizontal hinge line */
+        .flap::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(0,0,0,0.6);
+            z-index: 5;
+        }
+
+        /* Animation class */
+        .flipping {
+            animation: flip-anim 0.15s ease-in;
+        }
+
+        @keyframes flip-anim {
+            0% { transform: rotateX(0deg); }
+            50% { transform: rotateX(-90deg); background-color: #444; }
+            100% { transform: rotateX(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <input type="text" id="userInput" placeholder="ENTER DESTINATION..." maxlength="10">
+        <button onclick="updateDisplay()">SET</button>
+    </div>
+
+    <div class="display" id="board">
+        </div>
+
+    <script>
+        const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+        const BOARD_SIZE = 10;
+        const boardElement = document.getElementById('board');
+        let currentValues = Array(BOARD_SIZE).fill(" ");
+
+        // Initialize the board
+        function initBoard() {
+            boardElement.innerHTML = '';
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                const flap = document.createElement('div');
+                flap.className = 'flap';
+                flap.innerText = " ";
+                boardElement.appendChild(flap);
+            }
+        }
+
+        async function updateDisplay() {
+            const input = document.getElementById('userInput').value.toUpperCase();
+            const targetChars = input.padEnd(BOARD_SIZE, " ").split("");
+            const flaps = document.querySelectorAll('.flap');
+
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                flipTo(flaps[i], currentValues[i], targetChars[i], i);
+            }
+        }
+
+        async function flipTo(element, startChar, endChar, index) {
+            let currentIndex = CHARS.indexOf(startChar);
+            const targetIndex = CHARS.indexOf(endChar);
+
+            while (currentIndex !== targetIndex) {
+                currentIndex = (currentIndex + 1) % CHARS.length;
+                element.innerText = CHARS[currentIndex];
+                
+                // Trigger CSS animation
+                element.classList.remove('flipping');
+                void element.offsetWidth; // Trigger reflow
+                element.classList.add('flipping');
+
+                // Speed of the "click"
+                await new Promise(resolve => setTimeout(resolve, 80)); 
+            }
+            currentValues[index] = endChar;
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
