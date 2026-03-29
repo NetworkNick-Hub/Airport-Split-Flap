@@ -308,6 +308,17 @@
 
         let boardState = [];
         let clockState = [" ", " ", " ", " ", " ", " "];
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
 
         function updateClock() {
             const now = new Date();
@@ -531,6 +542,13 @@
 
         initClock();
         initBoard();
+        requestWakeLock();
+
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
     </script>
 </body>
 </html>
